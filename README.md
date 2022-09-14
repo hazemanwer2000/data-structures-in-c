@@ -1,5 +1,5 @@
 # data-structures-in-c
-Optimized and well-documented static and dynamic **Data Structures**, ready for use, implemented in *ANSI C*.
+Optimized, well-documented, static and dynamic **Data Structures**, ready for use, implemented in *ANSI C*.
 
 - Linked List
 - Doubly Linked List
