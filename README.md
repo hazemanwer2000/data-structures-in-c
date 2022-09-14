@@ -1,5 +1,5 @@
 # data-structures-in-c
-Optimized and well-documented **Data Structures**, ready for use, implemented in *ANSI C*.
+Optimized and well-documented static and dynamic **Data Structures**, ready for use, implemented in *ANSI C*.
 
 - Linked List
 - Doubly Linked List
@@ -8,3 +8,5 @@ Optimized and well-documented **Data Structures**, ready for use, implemented in
 - Binary Tree
 - Balanced Binary Tree
 - AVL Binary Tree
+
+Also, check out *Brief Summary of C* and *Data Structures and Algorithms* Jupyter notebooks.
