@@ -11,4 +11,4 @@ Optimized and well-documented static and dynamic **Data Structures**, ready for 
 
 &nbsp;
 
-Also, check out [*Brief Summary of C*](brief_summary_of_c.ipynb) and [*Data Structures and Algorithms*](data_structures_and_algorithms.ipynb).
+Also, check out [*Brief Summary of C*](brief_summary_of_c.ipynb) and [*Data Structures and Algorithms*](data_structures_and_algorithms.ipynb) *Jupyter* notebooks.
