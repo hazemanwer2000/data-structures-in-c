@@ -6,6 +6,9 @@
  * **************************************************************
  **/
 
+#ifndef _AVL_TREE_H_
+#define _AVL_TREE_H_
+
 /* ********************* #include SECTION ********************** */
 
 #include <stdio.h>
@@ -18,8 +21,8 @@
 /* ********************* struct(s) SECTION ********************** */
 
 typedef struct AVL_NODE {
-    struct avl_node *lchild;
-    struct avl_node *rchild;
+    struct AVL_NODE *lchild;
+    struct AVL_NODE *rchild;
     DATA_TYPE data;
     signed char balance;
 } avl_node;
@@ -31,3 +34,8 @@ typedef struct AVL_TREE {
 
 /* ********************* function declaration(S) SECTION ********************** */
 
+avl_tree * avl_create();
+void avl_insert(avl_tree *tree, DATA_TYPE data);
+void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*func_clean)());
+
+#endif

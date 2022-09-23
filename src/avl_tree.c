@@ -12,7 +12,33 @@
 
 /* ********************* static function declaration(s) SECTION ********************** */
 
+static void avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data));
 
+/* ********************* 'main' function defintion SECTION (UNIT-TEST) ********************** */
+
+#ifdef _MAIN_AVL_TREE_
+
+void func_clean();
+void func_print(int data);
+
+int main() {
+	avl_tree *tree = avl_create();
+	avl_insert(tree, 5);
+	avl_insert(tree, 1);
+	avl_insert(tree, 8);
+	avl_print_list(tree, func_print, func_clean);
+	return 0;
+}
+
+void func_clean() {
+	printf("Cleaning...");
+}
+
+void func_print(int data) {
+	printf("%d, ", data);
+}
+
+#endif
 
 /* ********************* function definition(s) SECTION ********************** */
 
@@ -30,12 +56,12 @@ void avl_insert(avl_tree *tree, DATA_TYPE data) {
     new_node->balance = 0;
     new_node->data = data;
 
-    avl_node *parent = &tree->root;
+    avl_node **parent = &tree->root;
     while (*parent != NULL) {
-    	if (new_node->data < *parent->data) {
-    		parent = parent->lchild;
+    	if (new_node->data < (*parent)->data) {
+    		parent = &(*parent)->lchild;
     	} else {
-    		parent = parent->rchild;
+    		parent = &(*parent)->rchild;
     	}
     }
     *parent = new_node;
@@ -47,10 +73,22 @@ void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*f
 	func_clean();
 }
 
-static avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data)) {
+static void avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data)) {
 	if (node != NULL) {
-		avl_print_list_helper(node->lchild);
+		avl_print_list_helper(node->lchild, func_print);
 		func_print(node->data);
-		avl_print_list_helper(node->rchild);
+		avl_print_list_helper(node->rchild, func_print);
+	}
+}
+
+void avl_print_tree(avl_tree *tree, void (*func_print)(DATA_TYPE data)) {
+
+}
+
+static void avl_print_list_helper(avl_node *node, avl_node void (*func_print)(DATA_TYPE data)) {
+	if (node != NULL) {
+		avl_print_list_helper(node->lchild, func_print);
+		func_print(node->data);
+		avl_print_list_helper(node->rchild, func_print);
 	}
 }
