@@ -35,7 +35,6 @@ typedef struct AVL_TREE {
 /* ********************* function declaration(S) SECTION ********************** */
 
 avl_tree * avl_create();
-void avl_insert(avl_tree *tree, DATA_TYPE data);
-void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*func_clean)());
+void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 #endif
