@@ -13,10 +13,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /* ********************* #define SECTION ********************** */
 
 #define DATA_TYPE int
+#define DEFAULT_VALUE 0
+
+#define LENGTH_DT unsigned long
 
 /* ********************* struct(s) SECTION ********************** */
 
@@ -36,5 +40,6 @@ typedef struct AVL_TREE {
 
 avl_tree * avl_create();
 void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+LENGTH_DT avl_height(avl_tree *tree);
 
 #endif
