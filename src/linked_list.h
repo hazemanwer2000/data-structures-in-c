@@ -129,6 +129,14 @@ void ll_append(ll_list *list, DATA_TYPE data);
 void ll_prepend(ll_list *list, DATA_TYPE data);
 
 /**
+ *  @brief      : Copy a list into a new list, in the same order, or in reverse.
+ *  @param      : [ List to copy. ]
+ *                [ Reverse flag (1 to reverse). ]
+ *  @return     : None.
+**/
+ll_list * ll_copy(ll_list *list, unsigned char rev_flag);
+
+/**
  *  @brief      : Delete all items in a list.
  *  @param      : [ List to delete all items from. ]
  *  @return     : None.
