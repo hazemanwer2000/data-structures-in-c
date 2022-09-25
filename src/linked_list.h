@@ -14,39 +14,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "shared_defs.h"
 
 /* ********************* #define SECTION ********************** */
-
-/**
- *  @brief      : The data-type of choice in the list.
- *                  (Note: Should be 'void *' for generality.)
-**/
-#define DATA_TYPE int
-
-/**
- *  @brief      : The default value of the data-type of choice in the list.
- *                  This value is returned by indexable, item-returning functions, when the index is out-of-bounds.
- *                  (Note: Should be '0' for generality.)
-**/
-#define DEFAULT_VALUE -1
-
-/**
- *  @brief      : The data-type of choice for the length of a list to be stored in.
- *                  (Note: It defines the maximum length of a list.)
-**/
-#define LENGTH_DT signed long
 
 /**
  *  @brief      : Stack functions, implemented as macro functions, aliasing list functions.
 **/
 #define ll_push(list, data)         ll_prepend(list, data)
 #define ll_pop(list)                ll_delete(list, 0)
+#define ll_top(list)                ll_get(list, 0)
 
 /**
  *  @brief      : Queue functions, implemented as macro functions, aliasing list functions.
 **/
 #define ll_enqueue(list, data)      ll_append(list, data)
 #define ll_dequeue(list)            ll_delete(list, 0)
+#define ll_front(list)              ll_get(list, 0)
 
 /* ********************* struct(s) SECTION ********************** */
 
@@ -66,6 +50,10 @@ typedef struct LL_LIST {
     ll_node *tail;
     LENGTH_DT length;
 } ll_list;
+
+/* ********************* #include SECTION (2) ********************** */
+
+#include "avl_tree.h"
 
 /* ********************* function declaration(S) SECTION ********************** */
 
@@ -158,6 +146,6 @@ void ll_destroy(ll_list *list);
  *                [ Function to be called after all items have been printed (passed list and used for clean-up). ]
  *  @return     : None.
 **/
-void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list));
+void ll_print(ll_list *list, void (*f_print)(DATA_TYPE data), void (*f_clean)(ll_list *list));
 
 #endif

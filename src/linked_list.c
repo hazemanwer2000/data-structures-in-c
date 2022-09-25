@@ -267,25 +267,27 @@ void ll_destroy(ll_list *list) {
  *                [ Function to be called after all items have been printed (passed list and used for clean-up). ]
  *  @return     : None.
 **/
-void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list)) {
+void ll_print(ll_list *list, void (*f_print)(DATA_TYPE data), void (*f_clean)(ll_list *list)) {
     if (list->length != 0) {
         ll_node *node = list->head;
         while (node != NULL) {
-            func_print(node->data);
+            f_print(node->data);
             node = node->next;
         }
-        func_clean(list);
+        f_clean(list);
     }
 }
 
 /* ********************* 'main' function defintion SECTION (UNIT-TEST) ********************** */
 
-#ifdef _MAIN_LINKED_LIST_
+                                            /* NOTE: This unit-test depends on the DATA_TYPE being 'int' */
+
+#ifdef _MAIN_LINKED_LIST_               /* compile-time switch */
 
 #define LEN(ARR) (*(&ARR+1)-ARR)
 
-void func_clean(ll_list *list);
-void func_print(int data);
+void f_clean(ll_list *list);
+void f_print(int data);
 void testing_list(ll_list *list);
 void testing_list_advanced(ll_list *list);
 void testing_stack(ll_list *list);
@@ -309,7 +311,7 @@ void testing_queue(ll_list *list) {
     for (int i = 0; i < LEN(to_enqueue); i++) {
         printf("Enqueuing: %d\n", to_enqueue[i]);
         ll_enqueue(list, to_enqueue[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -322,7 +324,7 @@ void testing_queue(ll_list *list) {
     for (int i = 0; i < LEN(to_enqueue2); i++) {
         printf("Enqueuing: %d\n", to_enqueue2[i]);
         ll_enqueue(list, to_enqueue2[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     printf("\nLength: %lu\n", list->length);
     putchar('\n');
@@ -333,7 +335,7 @@ void testing_stack(ll_list *list) {
     for (int i = 0; i < LEN(to_push); i++) {
         printf("Pushing: %d\n", to_push[i]);
         ll_push(list, to_push[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -346,7 +348,7 @@ void testing_stack(ll_list *list) {
     for (int i = 0; i < LEN(to_push2); i++) {
         printf("Pushing: %d\n", to_push2[i]);
         ll_push(list, to_push2[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     printf("\nLength: %lu\n", list->length);
     putchar('\n');
@@ -357,7 +359,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_append); i++) {
         printf("Appending: %d\n", to_append[i]);
         ll_append(list, to_append[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -365,7 +367,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_prepend); i++) {
         printf("Prepending: %d\n", to_prepend[i]);
         ll_prepend(list, to_prepend[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -374,7 +376,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_insert); i++) {
         printf("Inserting: %d, Data: %d\n", to_insert[i], to_insert_data[i]);
         ll_insert(list, to_insert_data[i], to_insert[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -382,7 +384,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_delete); i++) {
         printf("Deleting: %d\n", to_delete[i]);
         printf("Item deleted: %d\n", ll_delete(list, to_delete[i]));
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -391,7 +393,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_replace); i++) {
         printf("Replacing: %d, Data: %d\n", to_replace[i], to_replace_data[i]);
         ll_replace(list, to_replace_data[i], to_replace[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 
@@ -412,7 +414,7 @@ void testing_list(ll_list* list) {
     for (int i = 0; i < LEN(to_append2); i++) {
         printf("Appending: %d\n", to_append2[i]);
         ll_append(list, to_append2[i]);
-        ll_print(list, func_print, func_clean);
+        ll_print(list, f_print, f_clean);
     }
     putchar('\n');
 }
@@ -422,30 +424,30 @@ void testing_list_advanced(ll_list *list) {
     for (int i = 0; i < LEN(to_append); i++) {
         ll_append(list, to_append[i]);
     }
-    ll_print(list, func_print, func_clean);
+    ll_print(list, f_print, f_clean);
     putchar('\n');
 
     printf("Copying...\n");
     ll_list *copy = ll_copy(list, 0);
-    ll_print(copy, func_print, func_clean);
+    ll_print(copy, f_print, f_clean);
     ll_destroy(copy);
     putchar('\n');
 
     printf("Reverse copying...\n");
     copy = ll_copy(list, 1);
-    ll_print(copy, func_print, func_clean);
+    ll_print(copy, f_print, f_clean);
     putchar('\n');
 
     printf("Original...\n");
-    ll_print(list, func_print, func_clean);
+    ll_print(list, f_print, f_clean);
     putchar('\n');
 }
 
-void func_clean(ll_list *list) {
+void f_clean(ll_list *list) {
     printf("\b\b \n");
 }
 
-void func_print(int data) {
+void f_print(int data) {
     printf("%d, ", data);
 }
 
