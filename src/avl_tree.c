@@ -28,6 +28,12 @@
 
 static avl_node * avl_create_node(avl_tree *tree, DATA_TYPE data);
 static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+static avl_node * avl_insert_rec(avl_node *root_node, avl_node *new_node, unsigned int *signal,
+								unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+static avl_node * left_balance(avl_node *node, unsigned int *signal);
+static avl_node * right_balance(avl_node *node, unsigned int *signal);
+static avl_node * rotate_left(avl_node *node);
+static avl_node * rotate_right(avl_node *node);
 static LENGTH_DT avl_height_helper(avl_node *node, LENGTH_DT level);
 static void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*func_clean)());
 static void avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data));
@@ -67,7 +73,7 @@ static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_comp
 
 void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
 	unsigned int signal;
-	tree->root = avl_insert_rec(tree->root, avl_create_node(), &signal);
+	tree->root = avl_insert_rec(tree->root, avl_create_node(tree, data), &signal, f_compare);
 	tree->length++;
 }
 
@@ -104,7 +110,7 @@ static avl_node * avl_insert_rec(avl_node *root_node, avl_node *new_node, unsign
 	return root_node;
 }
 
-static void left_balance(avl_node *node, unsigned int *signal) {
+static avl_node * left_balance(avl_node *node, unsigned int *signal) {
 	avl_node *lsub, *lrsub;
 	lsub = node->lchild;
 	switch (lsub->balance) {
@@ -130,7 +136,7 @@ static void left_balance(avl_node *node, unsigned int *signal) {
 					break;
 			}
 			lrsub->balance = BAL;
-			node->left = rotate_left(lsub);
+			node->lchild = rotate_left(lsub);
 			node = rotate_right(node);
 			break;
 	}
@@ -138,7 +144,7 @@ static void left_balance(avl_node *node, unsigned int *signal) {
 	return node;
 }
 
-static void right_balance(avl_node *node, unsigned int *signal) {
+static avl_node * right_balance(avl_node *node, unsigned int *signal) {
 	avl_node *rsub, *rlsub;
 	rsub = node->rchild;
 	switch (rsub->balance) {
@@ -164,7 +170,7 @@ static void right_balance(avl_node *node, unsigned int *signal) {
 					break;
 			}
 			rlsub->balance = BAL;
-			node->right = rotate_right(rsub);
+			node->rchild = rotate_right(rsub);
 			node = rotate_left(node);
 			break;
 	}
@@ -173,14 +179,14 @@ static void right_balance(avl_node *node, unsigned int *signal) {
 }
 
 static avl_node * rotate_left(avl_node *node) {
-	avl_node *tmp = node->rchlid;
+	avl_node *tmp = node->rchild;
 	node->rchild = tmp->lchild;
 	tmp->lchild = node;
 	return tmp;
 }
 
 static avl_node * rotate_right(avl_node *node) {
-	avl_node *tmp = node->lchlid;
+	avl_node *tmp = node->lchild;
 	node->lchild = tmp->rchild;
 	tmp->rchild = node;
 	return tmp;
@@ -265,14 +271,74 @@ static void putchar_n(char c, unsigned int n) {
 
 #define LEN(ARR) (*(&ARR+1)-ARR)
 
+void test_insert_BT();
+void test_insert();
+void test_insert_helper(avl_tree *tree, int to_insert[], int len);
 unsigned char f_compare(DATA_TYPE new_data, DATA_TYPE old_data);
 void f_clean(avl_tree *tree);
 void f_print(int data);
 
 int main() {
+	/* test_insert_BT(); */
+	test_insert();
+	return 0;
+}
+
+void test_insert() {
+	avl_tree *tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-LEFT-ROTATION) ***********\n\n");
+	int to_insert1[] = {1, 2, 3, 4, 5, 6, 7};
+	test_insert_helper(tree, to_insert1, LEN(to_insert1));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-RIGHT-ROTATION) ***********\n\n");
+	int to_insert2[] = {7, 6, 5, 4, 3, 2, 1};
+	test_insert_helper(tree, to_insert2, LEN(to_insert2));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-1) ***********\n\n");
+	int to_insert3[] = {2, 1, 5, 3, 6, 4};
+	test_insert_helper(tree, to_insert3, LEN(to_insert3));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-2) ***********\n\n");
+	int to_insert4[] = {2, 1, 5, 4, 6, 3};
+	test_insert_helper(tree, to_insert4, LEN(to_insert4));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-3) ***********\n\n");
+	int to_insert5[] = {1, 3, 2};
+	test_insert_helper(tree, to_insert5, LEN(to_insert5));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-1) ***********\n\n");
+	int to_insert6[] = {5, 2, 6, 1, 3, 4};
+	test_insert_helper(tree, to_insert6, LEN(to_insert6));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-2) ***********\n\n");
+	int to_insert7[] = {5, 2, 6, 1, 4, 3};
+	test_insert_helper(tree, to_insert7, LEN(to_insert7));
+
+	tree = avl_create();
+	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-3) ***********\n\n");
+	int to_insert8[] = {3, 1, 2};
+	test_insert_helper(tree, to_insert8, LEN(to_insert8));
+}
+
+void test_insert_helper(avl_tree *tree, int to_insert[], int len) {
+    for (int i = 0; i < len; i++) {
+        printf("Inserting: %d\n", to_insert[i]);
+        avl_insert(tree, to_insert[i], f_compare);
+		avl_print_tree(tree);
+		putchar('\n');
+    }
+}
+
+void test_insert_BT() {
 	avl_tree *tree = avl_create();
 
-	int to_insert[] = {2, 5, 8, 1, 3, 0};   //{4, 2, 6, 1, 3, 5, 7};
+	int to_insert[] = {2, 5, 8, 1, 3, 0};           /* {4, 2, 6, 1, 3, 5, 7} level-first */
     for (int i = 0; i < LEN(to_insert); i++) {
         printf("Inserting: %d\n", to_insert[i]);
         avl_insert_BT(tree, to_insert[i], f_compare);
@@ -281,8 +347,6 @@ int main() {
     putchar('\n');
 	avl_print_tree(tree);
 	putchar('\n');
-
-	return 0;
 }
 
 unsigned char f_compare(DATA_TYPE new_data, DATA_TYPE old_data) {
