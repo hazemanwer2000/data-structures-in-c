@@ -13,8 +13,8 @@
 /* ********************* static function declaration(s) SECTION ********************** */
 
 static ll_node * ll_create_node(DATA_TYPE data);
-static ll_node * ll_get_node(ll_list *list, uintmax_t i);
-static ll_node * ll_get_previous_node(ll_list *list, uintmax_t i);
+static ll_node * ll_get_node(ll_list *list, LENGTH_DT i);
+static ll_node * ll_get_previous_node(ll_list *list, LENGTH_DT i);
 static void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list));
 
 /* ********************* function definition(s) SECTION ********************** */
@@ -47,9 +47,9 @@ static ll_node * ll_create_node(DATA_TYPE data) {
  *  @param      : List to search in, index to use.
  *  @return     : Pointer to the node.
 **/
-static ll_node * ll_get_node(ll_list *list, uintmax_t i) {
+static ll_node * ll_get_node(ll_list *list, LENGTH_DT i) {
     ll_node *node = list->head;
-    for (uintmax_t j = 0; j < i; j++) {
+    for (LENGTH_DT j = 0; j < i; j++) {
         node = node->next;
     }
     return node;
@@ -61,9 +61,9 @@ static ll_node * ll_get_node(ll_list *list, uintmax_t i) {
  *  @param      : List to search in, index to use.
  *  @return     : Pointer to the node.
 **/
-static ll_node * ll_get_previous_node(ll_list *list, uintmax_t i) {
+static ll_node * ll_get_previous_node(ll_list *list, LENGTH_DT i) {
     ll_node *node = list->head;
-    for (uintmax_t j = 1; j < i; j++) {
+    for (LENGTH_DT j = 1; j < i; j++) {
         node = node->next;
     }
     return node;
@@ -75,7 +75,7 @@ static ll_node * ll_get_previous_node(ll_list *list, uintmax_t i) {
  *  @param      : List to search in, index to use.
  *  @return     : Stored data.
 **/
-DATA_TYPE ll_get(ll_list *list, uintmax_t i) {
+DATA_TYPE ll_get(ll_list *list, LENGTH_DT i) {
     if (i < list->length) {
         return ll_get_node(list, i)->data;
     }
@@ -87,7 +87,7 @@ DATA_TYPE ll_get(ll_list *list, uintmax_t i) {
  *  @param      : List to search in, index to use.
  *  @return     : None.
 **/
-void ll_replace(ll_list *list, DATA_TYPE data, uintmax_t i) {
+void ll_replace(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
     if (i < list->length) {
         ll_get_node(list, i)->data = data;
     }
@@ -101,7 +101,7 @@ void ll_replace(ll_list *list, DATA_TYPE data, uintmax_t i) {
  *  @param      : List to work with, data to insert, index to insert at.
  *  @return     : None.
 **/
-void ll_insert(ll_list *list, DATA_TYPE data, uintmax_t i) {
+void ll_insert(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
     if (i <= list->length) {
         ll_node *new_node = ll_create_node(data);
         if (list->head == NULL) {                           /* Case: List empty. */
@@ -131,7 +131,7 @@ void ll_insert(ll_list *list, DATA_TYPE data, uintmax_t i) {
  *  @param      : List to delete from, index to work with.
  *  @return     : Stored data.
 **/
-DATA_TYPE ll_delete(ll_list *list, uintmax_t i) {
+DATA_TYPE ll_delete(ll_list *list, LENGTH_DT i) {
     if (i < list->length) {
         DATA_TYPE data;
         if (list->length == 1) {                            /* Case: List with one element only. */
@@ -189,6 +189,15 @@ void ll_prepend(ll_list *list, DATA_TYPE data) {
         list->head = list->tail = new_node;           /* Case: List empty. */
     }
     list->length++;
+}
+
+/**
+ *  @brief      : Delete and deallocate (free) each node in a list, without deallocating the list itself.
+ *  @param      : List to deallocate items of.
+ *  @return     : None.
+**/
+void ll_delete_all(ll_list *list) {
+    
 }
 
 /**

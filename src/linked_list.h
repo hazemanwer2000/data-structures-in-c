@@ -31,6 +31,12 @@
 #define DEFAULT_VALUE 0
 
 /**
+ *  @brief      : The data-type of choice for the length of a list to be stored in.
+ *                  (Note: It defines the maximum length of a list.)
+**/
+#define LENGTH_DT unsigned long
+
+/**
  *  @brief      : Stack functions, implemented as macro functions, aliasing list functions.
 **/
 #define ll_push(list, data)         ll_prepend(list, data)
@@ -58,7 +64,7 @@ typedef struct LL_NODE {
 typedef struct LL_LIST {
     ll_node *head;
     ll_node *tail;
-    uintmax_t length;
+    LENGTH_DT length;
 } ll_list;
 
 /* ********************* function declaration(S) SECTION ********************** */
@@ -76,28 +82,28 @@ ll_list * ll_create();
  *  @param      : List to search in, index to use.
  *  @return     : Stored data.
 **/
-DATA_TYPE ll_get(ll_list *list, uintmax_t i);
+DATA_TYPE ll_get(ll_list *list, LENGTH_DT i);
 
 /**
  *  @brief      : Replace item at an index in the list.
  *  @param      : List to search in, index to use.
  *  @return     : None.
 **/
-void ll_replace(ll_list *list, DATA_TYPE data, uintmax_t i);
+void ll_replace(ll_list *list, DATA_TYPE data, LENGTH_DT i);
 
 /**
  *  @brief      : Insert item at an index. Allows appending. If index is out of bounds, nothing happens.
  *  @param      : List to work with, data to insert, index to insert at.
  *  @return     : None.
 **/
-void ll_insert(ll_list *list, DATA_TYPE data, uintmax_t i);
+void ll_insert(ll_list *list, DATA_TYPE data, LENGTH_DT i);
 
 /**
  *  @brief      : Deleting item at index. If index does not exist, nothing happens. Returns item.
  *  @param      : List to delete from, index to work with.
  *  @return     : Stored data.
 **/
-DATA_TYPE ll_delete(ll_list *list, uintmax_t i);
+DATA_TYPE ll_delete(ll_list *list, LENGTH_DT i);
 
 /**
  *  @brief      : Append item to list.

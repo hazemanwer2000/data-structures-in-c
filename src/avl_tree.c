@@ -27,6 +27,10 @@
 /* ********************* static function declaration(s) SECTION ********************** */
 
 static avl_node * avl_create_node(avl_tree *tree, DATA_TYPE data);
+
+static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i);
+static void avl_get_node_helper(avl_node *node, LENGTH_DT *trace_i, avl_node **node_storage, const LENGTH_DT desired_i);
+
 static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 static avl_node * avl_insert_rec(avl_node *root_node, avl_node *new_node, unsigned int *signal,
 								unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
@@ -34,12 +38,19 @@ static avl_node * left_balance(avl_node *node, unsigned int *signal);
 static avl_node * right_balance(avl_node *node, unsigned int *signal);
 static avl_node * rotate_left(avl_node *node);
 static avl_node * rotate_right(avl_node *node);
+
+static void avl_delete_BT(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+static void avl_delete_BT_helper(avl_tree *tree, avl_node *node, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+
 static LENGTH_DT avl_height_helper(avl_node *node, LENGTH_DT level);
+
 static void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*func_clean)());
 static void avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data));
+
 static void avl_print_tree(avl_tree *tree);
 static void avl_print_tree_level(avl_node *node, LENGTH_DT curr_height, LENGTH_DT goal_height, unsigned int gap_size);
 static unsigned int avl_print_tree_gap_size(LENGTH_DT height);
+
 static void putchar_n(char c, unsigned int n);
 
 /* ********************* function definition(s) SECTION ********************** */
@@ -55,6 +66,31 @@ static avl_node * avl_create_node(avl_tree *tree, DATA_TYPE data) {
     new_node->rchild = new_node->lchild = NULL;
     new_node->balance = 0, new_node->data = data;
     return new_node;
+}
+
+DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i) {
+	avl_node *node = avl_get_node(tree, i);
+	if (node != NULL) {
+		return node->data;
+	}
+	return DEFAULT_VALUE;
+}
+
+static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i) {
+	LENGTH_DT trace_i = 0;
+	avl_node *node_storage = NULL;
+	avl_get_node_helper(tree->root, &trace_i, &node_storage, i);
+	return node_storage;
+}
+
+static void avl_get_node_helper(avl_node *node, LENGTH_DT *trace_i, avl_node **node_storage, const LENGTH_DT desired_i) {
+	if (node != NULL) {
+		avl_get_node_helper(node->lchild, trace_i, node_storage, desired_i);
+		if ((*trace_i)++ == desired_i) {
+			*node_storage = node;
+		}
+		avl_get_node_helper(node->rchild, trace_i, node_storage, desired_i);
+	}
 }
 
 static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
@@ -192,8 +228,61 @@ static avl_node * rotate_right(avl_node *node) {
 	return tmp;
 }
 
+static void avl_delete_BT(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	avl_node *node_to_del = avl_get_node(tree, i);
+	if (node_to_del != NULL) {
+		avl_delete_BT_helper(tree, node_to_del, f_compare);
+	}
+}
+
+static void avl_delete_BT_helper(avl_tree *tree, avl_node *node_to_del, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	avl_node **parent_ptr = &tree->root;
+	avl_node *tmp = NULL;
+	while (1) {
+		if (*parent_ptr == node_to_del) {
+			if ((*parent_ptr)->lchild == NULL && (*parent_ptr)->rchild ==  NULL) {    	/* Case: No children. */
+				free(*parent_ptr);
+				*parent_ptr = NULL;
+			} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Right child. */
+				tmp = *parent_ptr;
+				*parent_ptr = tmp->rchild;
+				free(tmp);
+			} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Left child. */
+				tmp = *parent_ptr;
+				*parent_ptr = tmp->lchild;
+				free(tmp);
+			} else {																	/* Case: No children. */
+				tmp = (*parent_ptr)->rchild;				/* get next in-order */
+				while (tmp->lchild != NULL) {
+					tmp = tmp->lchild;
+				}
+				(*parent_ptr)->data = tmp->data;
+				avl_delete_BT_helper(tree, tmp, f_compare);
+			}
+			break;
+		} else {
+			if (f_compare(node_to_del->data, (*parent_ptr)->data)) {
+				parent_ptr = &(*parent_ptr)->lchild;
+			} else {
+				parent_ptr = &(*parent_ptr)->rchild;
+			}
+		}
+	}
+}
+
+void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	avl_node *node_to_del = avl_get_node(tree, i);
+	if (node_to_del != NULL) {
+		avl_delete_rec(tree, node_to_del, f_compare);
+	}
+}
+
 LENGTH_DT avl_height(avl_tree *tree) {
 	return avl_height_helper(tree->root, 0);
+}
+
+LENGTH_DT avl_height_subtree(avl_node *node) {
+	return avl_height_helper(node, 0);
 }
 
 static LENGTH_DT avl_height_helper(avl_node *node, LENGTH_DT level) {
@@ -271,57 +360,92 @@ static void putchar_n(char c, unsigned int n) {
 
 #define LEN(ARR) (*(&ARR+1)-ARR)
 
+void test_get();
+
 void test_insert_BT();
 void test_insert();
 void test_insert_helper(avl_tree *tree, int to_insert[], int len);
+void test_delete_BT();
+
 unsigned char f_compare(DATA_TYPE new_data, DATA_TYPE old_data);
 void f_clean(avl_tree *tree);
 void f_print(int data);
 
 int main() {
 	/* test_insert_BT(); */
-	test_insert();
+	/* test_insert(); */
+	/* test_get(); */
+	/* test_delete_BT(); */
+
 	return 0;
 }
 
-void test_insert() {
+void test_delete_BT() {
+	printf("\n\n*********** TESTING (DELETE-BT) ***********\n\n");
 	avl_tree *tree = avl_create();
-	printf("\n\n*********** TESTING (INSERT-LEFT-ROTATION) ***********\n\n");
 	int to_insert1[] = {1, 2, 3, 4, 5, 6, 7};
 	test_insert_helper(tree, to_insert1, LEN(to_insert1));
 
-	tree = avl_create();
+	int to_delete[] = {3, 0, 4, 5, 2};
+	for (int i = 0; i < LEN(to_delete); i++) {
+		printf("Deleting i=%d\n", to_delete[i]);
+		avl_delete_BT(tree, to_delete[i], f_compare);
+		avl_print_tree(tree);
+		putchar('\n');
+	}
+}
+
+void test_get() {
+	printf("\n\n*********** TESTING (GET) ***********\n\n");
+	avl_tree *tree = avl_create();
+	int to_insert1[] = {1, 2, 3, 4, 5, 6, 7};
+	test_insert_helper(tree, to_insert1, LEN(to_insert1));
+
+	int to_get[] = {2, 5, 7, 3, 0, 9};
+	for (int i = 0; i < LEN(to_get); i++) {
+		printf("Getting i=%d\n", to_get[i]);
+		printf("Result->    %d\n", avl_get(tree, to_get[i]));
+	}
+}
+
+void test_insert() {
+	printf("\n\n*********** TESTING (INSERT-LEFT-ROTATION) ***********\n\n");
+	avl_tree *tree = avl_create();
+	int to_insert1[] = {1, 2, 3, 4, 5, 6, 7};
+	test_insert_helper(tree, to_insert1, LEN(to_insert1));
+
 	printf("\n\n*********** TESTING (INSERT-RIGHT-ROTATION) ***********\n\n");
+	tree = avl_create();
 	int to_insert2[] = {7, 6, 5, 4, 3, 2, 1};
 	test_insert_helper(tree, to_insert2, LEN(to_insert2));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-1) ***********\n\n");
+	tree = avl_create();
 	int to_insert3[] = {2, 1, 5, 3, 6, 4};
 	test_insert_helper(tree, to_insert3, LEN(to_insert3));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-2) ***********\n\n");
+	tree = avl_create();
 	int to_insert4[] = {2, 1, 5, 4, 6, 3};
 	test_insert_helper(tree, to_insert4, LEN(to_insert4));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-RIGHT-LEFT-ROTATION-3) ***********\n\n");
+	tree = avl_create();
 	int to_insert5[] = {1, 3, 2};
 	test_insert_helper(tree, to_insert5, LEN(to_insert5));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-1) ***********\n\n");
+	tree = avl_create();
 	int to_insert6[] = {5, 2, 6, 1, 3, 4};
 	test_insert_helper(tree, to_insert6, LEN(to_insert6));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-2) ***********\n\n");
+	tree = avl_create();
 	int to_insert7[] = {5, 2, 6, 1, 4, 3};
 	test_insert_helper(tree, to_insert7, LEN(to_insert7));
 
-	tree = avl_create();
 	printf("\n\n*********** TESTING (INSERT-LEFT-RIGHT-ROTATION-3) ***********\n\n");
+	tree = avl_create();
 	int to_insert8[] = {3, 1, 2};
 	test_insert_helper(tree, to_insert8, LEN(to_insert8));
 }
@@ -336,8 +460,8 @@ void test_insert_helper(avl_tree *tree, int to_insert[], int len) {
 }
 
 void test_insert_BT() {
+	printf("\n\n*********** TESTING (INSERT-BT) ***********\n\n");
 	avl_tree *tree = avl_create();
-
 	int to_insert[] = {2, 5, 8, 1, 3, 0};           /* {4, 2, 6, 1, 3, 5, 7} level-first */
     for (int i = 0; i < LEN(to_insert); i++) {
         printf("Inserting: %d\n", to_insert[i]);

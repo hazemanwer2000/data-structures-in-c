@@ -14,11 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "linked_list"
 
 /* ********************* #define SECTION ********************** */
 
 #define DATA_TYPE int
-#define DEFAULT_VALUE 0
+#define DEFAULT_VALUE -1
 
 #define LENGTH_DT unsigned long
 
@@ -39,7 +40,9 @@ typedef struct AVL_TREE {
 /* ********************* function declaration(S) SECTION ********************** */
 
 avl_tree * avl_create();
+DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i);
 void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 LENGTH_DT avl_height(avl_tree *tree);
+LENGTH_DT avl_height_subtree(avl_node *node);
 
 #endif
