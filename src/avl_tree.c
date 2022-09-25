@@ -18,11 +18,16 @@
 #define PTREE_POST 			"]"
 #define PTREE_DIGITS 		"2"
 #define PTREE_TOTAL 		4
-#define PTREE_BALANCE		1
+#define PTREE_BALANCE		0
+
+#define BAL 	0
+#define LHIGH 	1
+#define RHIGH 	-1
 
 /* ********************* static function declaration(s) SECTION ********************** */
 
 static avl_node * avl_create_node(avl_tree *tree, DATA_TYPE data);
+static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 static LENGTH_DT avl_height_helper(avl_node *node, LENGTH_DT level);
 static void avl_print_list(avl_tree *tree, void (*func_print)(DATA_TYPE data), void (*func_clean)());
 static void avl_print_list_helper(avl_node *node, void (*func_print)(DATA_TYPE data));
@@ -46,7 +51,7 @@ static avl_node * avl_create_node(avl_tree *tree, DATA_TYPE data) {
     return new_node;
 }
 
-void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+static void avl_insert_BT(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
     avl_node *new_node = avl_create_node(tree, data);
     avl_node **parent = &tree->root;
     while (*parent != NULL) {
@@ -58,6 +63,127 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
     }
     *parent = new_node;
     tree->length++;
+}
+
+void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	unsigned int signal;
+	tree->root = avl_insert_rec(tree->root, avl_create_node(), &signal);
+	tree->length++;
+}
+
+static avl_node * avl_insert_rec(avl_node *root_node, avl_node *new_node, unsigned int *signal,
+								unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	if (root_node == NULL) {
+		root_node = new_node;
+		*signal = 1;
+	} else if (f_compare(new_node->data, root_node->data)) {
+		root_node->lchild = avl_insert_rec(root_node->lchild, new_node, signal, f_compare);
+		if (*signal) {
+			if (root_node->balance == RHIGH) {
+				root_node->balance = BAL;
+				*signal = 0;
+			} else if (root_node->balance == BAL) {
+				root_node->balance = LHIGH;
+			} else {
+				root_node = left_balance(root_node, signal);          /* 2x LHIGH */
+			}
+		}
+	} else {
+		root_node->rchild = avl_insert_rec(root_node->rchild, new_node, signal, f_compare);
+		if (*signal) {
+			if (root_node->balance == LHIGH) {
+				root_node->balance = BAL;
+				*signal = 0;
+			} else if (root_node->balance == BAL) {
+				root_node->balance = RHIGH;
+			} else {
+				root_node = right_balance(root_node, signal);          /* 2x RHIGH */
+			}
+		}
+	}
+	return root_node;
+}
+
+static void left_balance(avl_node *node, unsigned int *signal) {
+	avl_node *lsub, *lrsub;
+	lsub = node->lchild;
+	switch (lsub->balance) {
+		case LHIGH:													/* single rotation */
+			node->balance = BAL;
+			lsub->balance = BAL;
+			node = rotate_right(node);
+			break;
+		case RHIGH:													/* double rotation */
+			lrsub = lsub->rchild;
+			switch(lrsub->balance) {
+				case LHIGH:
+					node->balance = RHIGH;
+					lsub->balance = BAL;
+					break;
+				case BAL:
+					node->balance = BAL;
+					lsub->balance = BAL;
+					break;
+				case RHIGH:
+					node->balance = BAL;
+					lsub->balance =	LHIGH;
+					break;
+			}
+			lrsub->balance = BAL;
+			node->left = rotate_left(lsub);
+			node = rotate_right(node);
+			break;
+	}
+	*signal = 0;
+	return node;
+}
+
+static void right_balance(avl_node *node, unsigned int *signal) {
+	avl_node *rsub, *rlsub;
+	rsub = node->rchild;
+	switch (rsub->balance) {
+		case RHIGH:													/* single rotation */
+			node->balance = BAL;
+			rsub->balance = BAL;
+			node = rotate_left(node);
+			break;
+		case LHIGH:													/* double rotation */
+			rlsub = rsub->lchild;
+			switch(rlsub->balance) {
+				case RHIGH:
+					node->balance = LHIGH;
+					rsub->balance = BAL;
+					break;
+				case BAL:
+					node->balance = BAL;
+					rsub->balance = BAL;
+					break;
+				case LHIGH:
+					node->balance = BAL;
+					rsub->balance =	RHIGH;
+					break;
+			}
+			rlsub->balance = BAL;
+			node->right = rotate_right(rsub);
+			node = rotate_left(node);
+			break;
+	}
+	*signal = 0;
+	return node;
+}
+
+static avl_node * rotate_left(avl_node *node) {
+	avl_node *tmp = node->rchlid;
+	node->rchild = tmp->lchild;
+	tmp->lchild = node;
+	return tmp;
+}
+
+static avl_node * rotate_right(avl_node *node) {
+	avl_node *tmp = node->lchlid;
+	node->lchild = tmp->rchild;
+	tmp->rchild = node;
+	return tmp;
 }
 
 LENGTH_DT avl_height(avl_tree *tree) {
@@ -146,10 +272,10 @@ void f_print(int data);
 int main() {
 	avl_tree *tree = avl_create();
 
-	int to_insert[] = {4, 2, 6, 1, 3, 5, 7};
+	int to_insert[] = {2, 5, 8, 1, 3, 0};   //{4, 2, 6, 1, 3, 5, 7};
     for (int i = 0; i < LEN(to_insert); i++) {
         printf("Inserting: %d\n", to_insert[i]);
-        avl_insert(tree, to_insert[i], f_compare);
+        avl_insert_BT(tree, to_insert[i], f_compare);
         avl_print_list(tree, f_print, f_clean);
     }
     putchar('\n');
