@@ -15,7 +15,7 @@
 static ll_node * ll_create_node(DATA_TYPE data);
 static ll_node * ll_get_node(ll_list *list, LENGTH_DT i);
 static ll_node * ll_get_previous_node(ll_list *list, LENGTH_DT i);
-static void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list));
+static void ll_deallocate_all(ll_list *list);
 
 /* ********************* function definition(s) SECTION ********************** */
 
@@ -32,7 +32,7 @@ ll_list * ll_create() {
 
 /**
  *  @brief      : (For internal use) Allocating dynamic memory for a list node, initializing and returning the pointer.
- *  @param      : Data to store.
+ *  @param      : [ Data to store. ]
  *  @return     : Pointer to the dynamically allocated node.
 **/
 static ll_node * ll_create_node(DATA_TYPE data) {
@@ -44,7 +44,8 @@ static ll_node * ll_create_node(DATA_TYPE data) {
 /**
  *  @brief      : (For internal use) Get the node at an index in the list. 
  *                  Does not perform any checking on the index. Assumes it is correct.
- *  @param      : List to search in, index to use.
+ *  @param      : [ List to search in. ]
+ *                [ Index to use. ]
  *  @return     : Pointer to the node.
 **/
 static ll_node * ll_get_node(ll_list *list, LENGTH_DT i) {
@@ -58,7 +59,8 @@ static ll_node * ll_get_node(ll_list *list, LENGTH_DT i) {
 /**
  *  @brief      : (For internal use) Get the previous node at an index in the list. 
  *                  Does not perform any checking on the index. Assumes it is correct.
- *  @param      : List to search in, index to use.
+ *  @param      : [ List to search in. ] 
+ *                [ Index to use. ]
  *  @return     : Pointer to the node.
 **/
 static ll_node * ll_get_previous_node(ll_list *list, LENGTH_DT i) {
@@ -72,10 +74,14 @@ static ll_node * ll_get_previous_node(ll_list *list, LENGTH_DT i) {
 /**
  *  @brief      : Get the value at an index in the list. If fails, because index is out of bounds,
  *                  then, return a default value, set in the header file.
- *  @param      : List to search in, index to use.
+ *                  (Note: Allows negative indexing if LENGTH_DT is signed.)
+ *  @param      : [ List to search in. ]
+ *                [ Index to use. ]
  *  @return     : Stored data.
 **/
 DATA_TYPE ll_get(ll_list *list, LENGTH_DT i) {
+    if (i < 0) { i += list->length; }                    /* to allow reverse indexing */
+
     if (i < list->length) {
         return ll_get_node(list, i)->data;
     }
@@ -84,7 +90,9 @@ DATA_TYPE ll_get(ll_list *list, LENGTH_DT i) {
 
 /**
  *  @brief      : Replace value at an index in the list.
- *  @param      : List to search in, index to use.
+ *  @param      : [ List to search in. ]
+ *                [ Data to substitute. ]
+ *                [ Index to use. ]
  *  @return     : None.
 **/
 void ll_replace(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
@@ -98,7 +106,9 @@ void ll_replace(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
  *                  Four cases are attended to: Empty list, Insertion at beginning (append), Insertion at end (prepend),
  *                  and any other case (must search for previous node). Before anything, must check if index already exists,
  *                  (or appending). If index does not match these conditions, then insertion does not happen.
- *  @param      : List to work with, data to insert, index to insert at.
+ *  @param      : [ List to work with. ]
+ *                [ Data to insert. ] 
+ *                [ Index to insert at. ]
  *  @return     : None.
 **/
 void ll_insert(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
@@ -128,7 +138,8 @@ void ll_insert(ll_list *list, DATA_TYPE data, LENGTH_DT i) {
  *                  (Note: You cannot delete a tail directly, since this is a singly linked list.)
  *                  The data of the node to-be-deleted is returned for convenience. If no deletion occurs,
  *                  A default value is returned, set in the header file.
- *  @param      : List to delete from, index to work with.
+ *  @param      : [ List to delete from. ]
+ *                [ Index to work with. ]
  *  @return     : Stored data.
 **/
 DATA_TYPE ll_delete(ll_list *list, LENGTH_DT i) {
@@ -162,7 +173,8 @@ DATA_TYPE ll_delete(ll_list *list, LENGTH_DT i) {
 
 /**
  *  @brief      : Append to a list. Must handle case where list is empty.
- *  @param      : List, data.
+ *  @param      : [ List. ] 
+ *                [ Data. ]
  *  @return     : None.
 **/
 void ll_append(ll_list *list, DATA_TYPE data) {
@@ -177,7 +189,8 @@ void ll_append(ll_list *list, DATA_TYPE data) {
 
 /**
  *  @brief      : Prepend to a list. Must handle case where list is empty.
- *  @param      : List, data.
+ *  @param      : [ List. ]
+ *                [ Data. ]
  *  @return     : None.
 **/
 void ll_prepend(ll_list *list, DATA_TYPE data) {
@@ -192,39 +205,69 @@ void ll_prepend(ll_list *list, DATA_TYPE data) {
 }
 
 /**
- *  @brief      : Delete and deallocate (free) each node in a list, without deallocating the list itself.
- *  @param      : List to deallocate items of.
+ *  @brief      : (internal use only) Deallocate (free) each node in a list, without deallocating the list itself,
+ *                  or setting the head or tail pointers to NULL, or list length.
+ *  @param      : [ List to deallocate items of. ]
  *  @return     : None.
 **/
-void ll_delete_all(ll_list *list) {
-    
-}
-
-/**
- *  @brief      : Deallocate (free) each node in a list, then deallocate the list itself. Pointer to list
- *                  should not be used thereafter, because it points to already deallocated memory.
- *  @param      : List to deallocate.
- *  @return     : None.
-**/
-void ll_destroy(ll_list *list) {
+static void ll_deallocate_all(ll_list *list) {
     ll_node *node = list->head, *next_node;
     if (node != NULL) {
         next_node = node->next;
         free(node);
         node = next_node;
     }
+}
+
+/**
+ *  @brief      : Delete and deallocate (free) each node in a list, without deallocating the list itself.
+ *  @param      : [ List to deallocate items of. ]
+ *  @return     : None.
+**/
+void ll_delete_all(ll_list *list) {
+    ll_deallocate_all(list);
+    list->head = list->tail = NULL, list->length = 0;
+}
+
+/**
+ *  @brief      : Copy a list into a new list, in the same order, or in reverse.
+ *  @param      : [ List to copy. ]
+ *                [ Reverse flag (1 to reverse). ]
+ *  @return     : None.
+**/
+ll_list * ll_copy(ll_list *list, unsigned char rev_flag) {
+    ll_list * new_list = ll_create();
+    ll_node * traverse_node = list->head;
+    void (*f_ptr)(ll_list *list, DATA_TYPE data) = rev_flag ? ll_prepend : ll_append;
+    while (traverse_node != NULL) {
+        f_ptr(new_list, traverse_node->data);
+        traverse_node = traverse_node->next;
+    }
+    return new_list;
+}
+
+/**
+ *  @brief      : Deallocate (free) each node in a list, then deallocate the list itself. Pointer to list
+ *                  should not be used thereafter, because it points to already deallocated memory.
+ *  @param      : [ List to deallocate. ]
+ *  @return     : None.
+**/
+void ll_destroy(ll_list *list) {
+    ll_deallocate_all(list);
     free(list);
 }
 
 /**
- *  @brief      : (internal use only) Print a list. Must pass a two function pointers,
+ *  @brief      : Print a list. Must pass a two function pointers,
  *                  one is used to print each node (passed the data, not the node), and another
  *                  is called at the end (passed a reference to the list) for cleaning, and perhaps,
  *                  printing length of list, etc. 
- *  @param      : list, function pointer to a node-print function, function pointer to a post-print cleaning function
+ *  @param      : [ List to print. ]
+ *                [ Function to be called at each item (passed each item consecutively). ] 
+ *                [ Function to be called after all items have been printed (passed list and used for clean-up). ]
  *  @return     : None.
 **/
-static void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list)) {
+void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*func_clean)(ll_list *list)) {
     if (list->length != 0) {
         ll_node *node = list->head;
         while (node != NULL) {
@@ -244,15 +287,17 @@ static void ll_print(ll_list *list, void (*func_print)(DATA_TYPE data), void (*f
 void func_clean(ll_list *list);
 void func_print(int data);
 void testing_list(ll_list *list);
+void testing_list_advanced(ll_list *list);
 void testing_stack(ll_list *list);
 void testing_queue(ll_list *list);
 
 int main() {
     ll_list *list = ll_create();
 
-    /* testing_list(list); */
+    testing_list(list);
     /* testing_stack(list); */
     /* testing_queue(list); */
+    /* testing_list_advanced(list); */
 
     ll_destroy(list);
 
@@ -266,13 +311,11 @@ void testing_queue(ll_list *list) {
         ll_enqueue(list, to_enqueue[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     for (int i = 0; i < 5; i++) {
         printf("Dequeuing: %d\n", ll_dequeue(list));
     }
-
     putchar('\n');
 
     int to_enqueue2[] = {5, 6, 7};
@@ -281,8 +324,8 @@ void testing_queue(ll_list *list) {
         ll_enqueue(list, to_enqueue2[i]);
         ll_print(list, func_print, func_clean);
     }
-
     printf("\nLength: %lu\n", list->length);
+    putchar('\n');
 }
 
 void testing_stack(ll_list *list) {
@@ -292,13 +335,11 @@ void testing_stack(ll_list *list) {
         ll_push(list, to_push[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     for (int i = 0; i < 5; i++) {
         printf("Popping: %d\n", ll_pop(list));
     }
-
     putchar('\n');
 
     int to_push2[] = {5, 6, 7};
@@ -307,8 +348,8 @@ void testing_stack(ll_list *list) {
         ll_push(list, to_push2[i]);
         ll_print(list, func_print, func_clean);
     }
-
     printf("\nLength: %lu\n", list->length);
+    putchar('\n');
 }
 
 void testing_list(ll_list* list) {
@@ -318,7 +359,6 @@ void testing_list(ll_list* list) {
         ll_append(list, to_append[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     int to_prepend[] = {3, 4};
@@ -327,7 +367,6 @@ void testing_list(ll_list* list) {
         ll_prepend(list, to_prepend[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     int to_insert[] = {0, 5, 5, 8, 3};
@@ -337,7 +376,6 @@ void testing_list(ll_list* list) {
         ll_insert(list, to_insert_data[i], to_insert[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     int to_delete[] = {0, 5, 2, 5, 4};
@@ -346,7 +384,6 @@ void testing_list(ll_list* list) {
         printf("Item deleted: %d\n", ll_delete(list, to_delete[i]));
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
     int to_replace[] = {0, 1, 2, 3, 4};
@@ -356,16 +393,52 @@ void testing_list(ll_list* list) {
         ll_replace(list, to_replace_data[i], to_replace[i]);
         ll_print(list, func_print, func_clean);
     }
-
     putchar('\n');
 
-    int to_get[] = {4, 3, 2, 1, 0};
+    int to_get[] = {4, 3, 2, 1, 0, -2};
     for (int i = 0; i < LEN(to_get); i++) {
         printf("Getting: %d\n", to_get[i]);
         printf("Result-> %15d\n", ll_get(list, to_get[i]));
     }
-
     printf("\nLength: %lu\n", list->length);
+    putchar('\n');
+
+    printf("Deleting all...\n");
+    ll_delete_all(list);
+    printf("Length: %lu\n", list->length);
+    putchar('\n');
+
+    int to_append2[] = {7, 8, 2, 3, 4};
+    for (int i = 0; i < LEN(to_append2); i++) {
+        printf("Appending: %d\n", to_append2[i]);
+        ll_append(list, to_append2[i]);
+        ll_print(list, func_print, func_clean);
+    }
+    putchar('\n');
+}
+
+void testing_list_advanced(ll_list *list) {
+    int to_append[] = {5, 4, 3, 2, 1};
+    for (int i = 0; i < LEN(to_append); i++) {
+        ll_append(list, to_append[i]);
+    }
+    ll_print(list, func_print, func_clean);
+    putchar('\n');
+
+    printf("Copying...\n");
+    ll_list *copy = ll_copy(list, 0);
+    ll_print(copy, func_print, func_clean);
+    ll_destroy(copy);
+    putchar('\n');
+
+    printf("Reverse copying...\n");
+    copy = ll_copy(list, 1);
+    ll_print(copy, func_print, func_clean);
+    putchar('\n');
+
+    printf("Original...\n");
+    ll_print(list, func_print, func_clean);
+    putchar('\n');
 }
 
 void func_clean(ll_list *list) {
