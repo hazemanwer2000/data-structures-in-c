@@ -12,11 +12,29 @@
 
 /* ********************* #define SECTION ********************** */
 
-#define MAX(A, B) (A >= B ? A : B)
+/**
+ *  @brief      : 
+**/
+#define LEFT 	((void *) 0x1)
+#define RIGHT 	((void *) 0x0)
+
+/**
+ *  @brief      : 
+**/
+#define BAL 	0
+#define LHIGH 	1
+#define RHIGH 	-1
 
 /* ********************* static function declaration(s) SECTION ********************** */
 
 static avl_node * avl_create_node(DATA_TYPE data);
+static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i);
+
+static avl_node * left_balance(avl_node *node);
+static avl_node * right_balance(avl_node *node);
+static avl_node * rotate_left(avl_node *node);
+static avl_node * rotate_right(avl_node *node);
+
 static void putchar_n(char c, unsigned int n);
 
 /* ********************* function definition(s) SECTION ********************** */
@@ -50,6 +68,46 @@ static avl_node * avl_create_node(DATA_TYPE data) {
  *  @param      : 
  *  @return     : 
 **/
+DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i) {
+	avl_node *node = avl_get_node(tree, i);
+	if (node != NULL) {
+		return node->data;
+	}
+	return DEFAULT_VALUE;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i) {
+	ll_list *stack = ll_create();
+	LENGTH_DT j = 0;
+	avl_node *node = NULL;
+	avl_node *curr_node = tree->root;
+
+	while (curr_node != NULL || stack->length != 0) {
+		while (curr_node != NULL) {
+			ll_push(stack, curr_node);
+			curr_node = curr_node->lchild;
+		}
+		curr_node = ll_pop(stack);
+		if (j++ == i) {
+			node = curr_node;
+			break;
+		}
+		curr_node = curr_node->rchild;
+	}
+	ll_destroy(stack);
+	return node;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
 void avl_insert_unbalanced(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
     avl_node *new_node = avl_create_node(data);
     avl_node **parent = &tree->root;
@@ -62,6 +120,258 @@ void avl_insert_unbalanced(avl_tree *tree, DATA_TYPE data, unsigned char (*f_com
     }
     *parent = new_node;
     tree->length++;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	unsigned int signal = 1;
+	avl_node *curr_node = tree->root;
+	avl_node *prev_node = NULL;
+	ll_list *stack = ll_create();
+
+	while (curr_node != NULL) {
+		ll_push(stack, (void *) curr_node);
+		if (f_compare(data, curr_node->data)) {
+			ll_push(stack, LEFT);
+			curr_node = curr_node->lchild;
+		} else {
+			ll_push(stack, RIGHT);
+			curr_node = curr_node->rchild;
+		}
+	}
+
+	curr_node = avl_create_node(data);
+
+	while (stack->length != 0) {
+		void * left_or_right = ll_pop(stack);
+		prev_node = ll_pop(stack);
+		if (left_or_right == LEFT) {
+			prev_node->lchild = curr_node;
+			if (signal) {
+				if (prev_node->balance == RHIGH) {
+					prev_node->balance = BAL;
+					signal = 0;
+				} else if (prev_node->balance == BAL) {
+					prev_node->balance = LHIGH;
+				} else {
+					prev_node = left_balance(prev_node);          /* 2x LHIGH */
+					signal = 0;
+				}
+			}
+		} else {
+			prev_node->rchild = curr_node;
+			if (signal) {
+				if (prev_node->balance == LHIGH) {
+					prev_node->balance = BAL;
+					signal = 0;
+				} else if (prev_node->balance == BAL) {
+					prev_node->balance = RHIGH;
+				} else {
+					prev_node = right_balance(prev_node);          /* 2x RHIGH */
+					signal = 0;
+				}
+			}
+		}
+		curr_node = prev_node;
+	}
+
+	tree->root = curr_node;
+	tree->length++;
+	ll_destroy(stack);
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	avl_node *node_to_del = avl_get_node(tree, i);
+	if (node_to_del != NULL) {
+		avl_node **parent_ptr = &tree->root;
+		while (1) {
+			if (*parent_ptr == node_to_del) {
+				if ((*parent_ptr)->lchild == NULL && (*parent_ptr)->rchild ==  NULL) {    	/* Case: No children. */
+					free(*parent_ptr);
+					*parent_ptr = NULL;
+					break;
+				} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Right child. */
+					avl_node *tmp = *parent_ptr;
+					*parent_ptr = tmp->rchild;
+					free(tmp);
+					break;
+				} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Left child. */
+					avl_node *tmp = *parent_ptr;
+					*parent_ptr = tmp->lchild;
+					free(tmp);
+					break;
+				} else {																	/* Case: Two children. */
+					avl_node **tmp_ptr = &(*parent_ptr)->rchild;				/* get next in-order */
+					while ((*tmp_ptr)->lchild != NULL) {
+						tmp_ptr = &(*tmp_ptr)->lchild;
+					}
+					(*parent_ptr)->data = (*tmp_ptr)->data;
+					parent_ptr = tmp_ptr;
+					node_to_del = *tmp_ptr;
+				}
+			} else {
+				if (f_compare(node_to_del->data, (*parent_ptr)->data)) {
+					parent_ptr = &(*parent_ptr)->lchild;
+				} else {
+					parent_ptr = &(*parent_ptr)->rchild;
+				}
+			}
+		}
+	}
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+	avl_node *node_to_del = avl_get_node(tree, i);
+	if (node_to_del != NULL) {
+		avl_node **parent_ptr = &tree->root;
+		while (1) {
+			if (*parent_ptr == node_to_del) {
+				if ((*parent_ptr)->lchild == NULL && (*parent_ptr)->rchild ==  NULL) {    	/* Case: No children. */
+					free(*parent_ptr);
+					*parent_ptr = NULL;
+					break;
+				} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Right child. */
+					avl_node *tmp = *parent_ptr;
+					*parent_ptr = tmp->rchild;
+					free(tmp);
+					break;
+				} else if ((*parent_ptr)->lchild == NULL) {									/* Case: Left child. */
+					avl_node *tmp = *parent_ptr;
+					*parent_ptr = tmp->lchild;
+					free(tmp);
+					break;
+				} else {																	/* Case: Two children. */
+					avl_node **tmp_ptr = &(*parent_ptr)->rchild;				/* get next in-order */
+					while ((*tmp_ptr)->lchild != NULL) {
+						tmp_ptr = &(*tmp_ptr)->lchild;
+					}
+					(*parent_ptr)->data = (*tmp_ptr)->data;
+					parent_ptr = tmp_ptr;
+					node_to_del = *tmp_ptr;
+				}
+			} else {
+				if (f_compare(node_to_del->data, (*parent_ptr)->data)) {
+					parent_ptr = &(*parent_ptr)->lchild;
+				} else {
+					parent_ptr = &(*parent_ptr)->rchild;
+				}
+			}
+		}
+	}
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+static avl_node * left_balance(avl_node *node) {
+	avl_node *lsub, *lrsub;
+	lsub = node->lchild;
+	switch (lsub->balance) {
+		case LHIGH:													/* single rotation */
+			node->balance = BAL;
+			lsub->balance = BAL;
+			node = rotate_right(node);
+			break;
+		case RHIGH:													/* double rotation */
+			lrsub = lsub->rchild;
+			switch(lrsub->balance) {
+				case LHIGH:
+					node->balance = RHIGH;
+					lsub->balance = BAL;
+					break;
+				case BAL:
+					node->balance = BAL;
+					lsub->balance = BAL;
+					break;
+				case RHIGH:
+					node->balance = BAL;
+					lsub->balance =	LHIGH;
+					break;
+			}
+			lrsub->balance = BAL;
+			node->lchild = rotate_left(lsub);
+			node = rotate_right(node);
+			break;
+	}
+	return node;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+static avl_node * right_balance(avl_node *node) {
+	avl_node *rsub, *rlsub;
+	rsub = node->rchild;
+	switch (rsub->balance) {
+		case RHIGH:													/* single rotation */
+			node->balance = BAL;
+			rsub->balance = BAL;
+			node = rotate_left(node);
+			break;
+		case LHIGH:													/* double rotation */
+			rlsub = rsub->lchild;
+			switch(rlsub->balance) {
+				case RHIGH:
+					node->balance = LHIGH;
+					rsub->balance = BAL;
+					break;
+				case BAL:
+					node->balance = BAL;
+					rsub->balance = BAL;
+					break;
+				case LHIGH:
+					node->balance = BAL;
+					rsub->balance =	RHIGH;
+					break;
+			}
+			rlsub->balance = BAL;
+			node->rchild = rotate_right(rsub);
+			node = rotate_left(node);
+			break;
+	}
+	return node;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+static avl_node * rotate_left(avl_node *node) {
+	avl_node *tmp = node->rchild;
+	node->rchild = tmp->lchild;
+	tmp->lchild = node;
+	return tmp;
+}
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+static avl_node * rotate_right(avl_node *node) {
+	avl_node *tmp = node->lchild;
+	node->lchild = tmp->rchild;
+	tmp->rchild = node;
+	return tmp;
 }
 
 /**
@@ -174,12 +484,22 @@ void f_print_avl(void *data);
 
 int main() {
 	avl_tree * tree = avl_create();
-	int to_insert[] = {8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15};
+	int to_insert[] = {1, 2, 3, 4, 5, 6, 7, 8}; 			// {8, 4, 12, 2, 6, 10, 14, 1, 3, 5, 7, 9, 11, 13, 15};
 	for (int i = 0; i < LEN(to_insert); i++) {
-		avl_insert_unbalanced(tree, test_int(to_insert[i]), f_compare);
+		printf("Inserting...\n");
+		avl_insert(tree, test_int(to_insert[i]), f_compare);
 	}
 	ll_print(avl_tree_to_list(tree), f_print, f_clean_ll);
 	printf("\nHeight: %lu\n", avl_height(tree));
+	avl_print(tree, f_print_avl, 4);
+
+	printf("List using get (length: %ld)\n", tree->length);
+	for (int i = 0; i < tree->length; i++) {
+		printf("%d ", *((int *) avl_get(tree, i)));
+	}
+	putchar('\n');
+
+	avl_delete_unbalanced(tree, 5, f_compare);
 	avl_print(tree, f_print_avl, 4);
 
 	return 0;

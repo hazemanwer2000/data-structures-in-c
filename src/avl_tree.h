@@ -33,7 +33,7 @@ typedef struct AVL_NODE {
 **/
 typedef struct AVL_TREE {
     avl_node *root;
-    unsigned long long length;
+    LENGTH_DT length;
 } avl_tree;
 
 /* ********************* #include SECTION (2) ********************** */
@@ -54,7 +54,35 @@ avl_tree * avl_create();
  *  @param      : 
  *  @return     : 
 **/
+DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i);
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
 void avl_insert_unbalanced(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+
+/**
+ *  @brief      : 
+ *  @param      : 
+ *  @return     : 
+**/
+void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 /**
  *  @brief      : 
