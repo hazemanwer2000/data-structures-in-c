@@ -118,7 +118,7 @@ static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i) {
 }
 
 /**
- *  @brief      : Inserts new data into a tree, like a sorted binary tree, and not an AVL BST. Continously traverses
+ *  @brief      : Inserts new data into a tree, like a BST, and not an AVL BST. Continously traverses
  *                  until a node is NULL. Then sets it to the new node, containing the data. A function must be passed
  *                  as a parameter. During the traversal, the function is called on the new data, and the data of the
  *                  node currently being traversed. The function should return '1' if the new data resides on the left
@@ -212,7 +212,7 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
 }
 
 /**
- *  @brief      : Deletes an item at an index. Uses the sorted binary tree deletion algorithm, and not that of
+ *  @brief      : Deletes an item at an index. Uses the unbalanced BST deletion algorithm, and not that of
  *                  an AVL BST. Four cases are adhered to: No children, right child only, left child only, and
  *                  two children. In the last case, the next in-order node is located and its data is copied to the
  *                  previously to-be-deleted node, then that (in-order) node is itself deleted instead.

@@ -58,7 +58,7 @@ avl_tree * avl_create();
 DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i);
 
 /**
- *  @brief      : Insert data in a tree, and ignore balances (Sorted Binary Tree Deletion).
+ *  @brief      : Insert data in a tree, and ignore balances (unbalanced BST insertion).
  *  @param      : [ Tree. ]
  *                [ Data to insert. ]
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
@@ -76,7 +76,7 @@ void avl_insert_unbalanced(avl_tree *tree, DATA_TYPE data, unsigned char (*f_com
 void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 /**
- *  @brief      : Index to delete item from. If index out of bounds, nothing happens. Ignores balances (Sorted Binary Tree Deletion).
+ *  @brief      : Index to delete item from. If index out of bounds, nothing happens. Ignores balances (unbalanced BST deletion).
  *  @param      : [ Tree. ]
  *                [ Index to delete at. ]
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
@@ -85,7 +85,7 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
 DATA_TYPE avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 /**
- *  @brief      : Index to delete item from. If index out of bounds, nothing happens. Balances (AVL Tree Deletion).
+ *  @brief      : Index to delete item from. If index out of bounds, nothing happens. Balances (AVL BST deletion).
  *  @param      : [ Tree. ]
  *                [ Index to delete at. ]
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
