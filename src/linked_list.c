@@ -1,8 +1,8 @@
 /**
  ****************************************************************
- * @file			: linked_list.c
- * @author 			: Eng. Hazem Mostafa Abdelaziz Anwer
- * @brief 			: Implementation of a linked list, with stack and queue functions.
+ * @file            : linked_list.c
+ * @author          : Eng. Hazem Mostafa Abdelaziz Anwer
+ * @brief           : Implementation of a linked list, with stack and queue functions.
  * **************************************************************
  **/
 
@@ -280,175 +280,164 @@ void ll_print(ll_list *list, void (*f_print)(DATA_TYPE data), void (*f_clean)(ll
 
 /* ********************* 'main' function defintion SECTION (UNIT-TEST) ********************** */
 
-                                            /* NOTE: This unit-test depends on the DATA_TYPE being 'int' */
-
 #ifdef _MAIN_LINKED_LIST_               /* compile-time switch */
 
 #define LEN(ARR) (*(&ARR+1)-ARR)
 
+void t_insert();
+void t_replace();
+void t_get();
+void t_delete();
+void t_append_prepend();
+void t_delete_all();
+void t_copy();
+
+void print(void *data);
+
 void f_clean(ll_list *list);
-void f_print(int data);
-void testing_list(ll_list *list);
-void testing_list_advanced(ll_list *list);
-void testing_stack(ll_list *list);
-void testing_queue(ll_list *list);
+void f_print(void *data);
 
 int main() {
-    ll_list *list = ll_create();
-
-    testing_list(list);
-    /* testing_stack(list); */
-    /* testing_queue(list); */
-    /* testing_list_advanced(list); */
-
-    ll_destroy(list);
-
+    t_insert();
+    t_replace();
+    t_get();
+    t_delete();
+    t_append_prepend();
+    t_delete_all();
+    t_copy();
     return 0;
 }
 
-void testing_queue(ll_list *list) {
-    int to_enqueue[] = {1, 2, 3, 4};
-    for (int i = 0; i < LEN(to_enqueue); i++) {
-        printf("Enqueuing: %d\n", to_enqueue[i]);
-        ll_enqueue(list, to_enqueue[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    for (int i = 0; i < 5; i++) {
-        printf("Dequeuing: %d\n", ll_dequeue(list));
-    }
-    putchar('\n');
-
-    int to_enqueue2[] = {5, 6, 7};
-    for (int i = 0; i < LEN(to_enqueue2); i++) {
-        printf("Enqueuing: %d\n", to_enqueue2[i]);
-        ll_enqueue(list, to_enqueue2[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    printf("\nLength: %lu\n", list->length);
-    putchar('\n');
-}
-
-void testing_stack(ll_list *list) {
-    int to_push[] = {1, 2, 3, 4};
-    for (int i = 0; i < LEN(to_push); i++) {
-        printf("Pushing: %d\n", to_push[i]);
-        ll_push(list, to_push[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    for (int i = 0; i < 5; i++) {
-        printf("Popping: %d\n", ll_pop(list));
-    }
-    putchar('\n');
-
-    int to_push2[] = {5, 6, 7};
-    for (int i = 0; i < LEN(to_push2); i++) {
-        printf("Pushing: %d\n", to_push2[i]);
-        ll_push(list, to_push2[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    printf("\nLength: %lu\n", list->length);
-    putchar('\n');
-}
-
-void testing_list(ll_list* list) {
-    int to_append[] = {1, 2};
-    for (int i = 0; i < LEN(to_append); i++) {
-        printf("Appending: %d\n", to_append[i]);
-        ll_append(list, to_append[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    int to_prepend[] = {3, 4};
-    for (int i = 0; i < LEN(to_prepend); i++) {
-        printf("Prepending: %d\n", to_prepend[i]);
-        ll_prepend(list, to_prepend[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    int to_insert[] = {0, 5, 5, 8, 3};
-    int to_insert_data[] = {0, 9, 8, 10, 13};
-    for (int i = 0; i < LEN(to_insert); i++) {
-        printf("Inserting: %d, Data: %d\n", to_insert[i], to_insert_data[i]);
-        ll_insert(list, to_insert_data[i], to_insert[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    int to_delete[] = {0, 5, 2, 5, 4};
-    for (int i = 0; i < LEN(to_delete); i++) {
-        printf("Deleting: %d\n", to_delete[i]);
-        printf("Item deleted: %d\n", ll_delete(list, to_delete[i]));
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    int to_replace[] = {0, 1, 2, 3, 4};
-    int to_replace_data[] = {0, 1, 2, 3, 4};
-    for (int i = 0; i < LEN(to_replace); i++) {
-        printf("Replacing: %d, Data: %d\n", to_replace[i], to_replace_data[i]);
-        ll_replace(list, to_replace_data[i], to_replace[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-
-    int to_get[] = {4, 3, 2, 1, 0, -2};
-    for (int i = 0; i < LEN(to_get); i++) {
-        printf("Getting: %d\n", to_get[i]);
-        printf("Result-> %15d\n", ll_get(list, to_get[i]));
-    }
-    printf("\nLength: %lu\n", list->length);
-    putchar('\n');
-
-    printf("Deleting all...\n");
-    ll_delete_all(list);
-    printf("Length: %lu\n", list->length);
-    putchar('\n');
-
-    int to_append2[] = {7, 8, 2, 3, 4};
-    for (int i = 0; i < LEN(to_append2); i++) {
-        printf("Appending: %d\n", to_append2[i]);
-        ll_append(list, to_append2[i]);
-        ll_print(list, f_print, f_clean);
-    }
-    putchar('\n');
-}
-
-void testing_list_advanced(ll_list *list) {
-    int to_append[] = {5, 4, 3, 2, 1};
-    for (int i = 0; i < LEN(to_append); i++) {
-        ll_append(list, to_append[i]);
+void t_delete() {
+    printf("*************** TEST (DELETE) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        ll_insert(list, arr_data+i, i);
     }
     ll_print(list, f_print, f_clean);
-    putchar('\n');
+    int arr_index[] = {0, 5, 2, 3, 4, 9};
+    for (int i = 0; i < LEN(arr_index); i++) {
+        printf("Deleting (i=%d)\n", arr_index[i]);
+        print(ll_delete(list, arr_index[i]));
+        ll_print(list, f_print, f_clean);
+    }
+    ll_destroy(list);
+}
 
+void t_replace() {
+    printf("*************** TEST (REPLACE) ***************\n");
+    ll_list *list = ll_create();
+    int zero = 0;
+    for (int i = 0; i < 6; i++) {
+        ll_insert(list, &zero, i);
+    }
+    ll_print(list, f_print, f_clean);
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int arr_index[] = {0, 0, 1, 2, 3, 2, 7, 5};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        printf("Replacing: %d at (i=%d)\n", arr_data[i], arr_index[i]);
+        ll_replace(list, arr_data+i, arr_index[i]);
+        ll_print(list, f_print, f_clean);
+    }
+    ll_destroy(list);
+}
+
+void t_insert() {
+    printf("*************** TEST (INSERT) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int arr_index[] = {0, 0, 1, 2, 3, 2, 7, 6};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        printf("Inserting: %d at (i=%d)\n", arr_data[i], arr_index[i]);
+        ll_insert(list, arr_data+i, arr_index[i]);
+        ll_print(list, f_print, f_clean);
+    }
+    ll_destroy(list);
+}
+
+void t_get() {
+    printf("*************** TEST (GET) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        ll_insert(list, arr_data+i, i);
+    }
+    ll_print(list, f_print, f_clean);
+    for (int i = 0; i < LEN(arr_data); i++) {
+        printf("Getting (i=%d)\n", i);
+        print(ll_get(list, i));
+    }
+    ll_destroy(list);
+}
+
+void t_append_prepend() {
+    printf("*************** TEST (APPEND/PREPEND) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int len = LEN(arr_data);
+    for (int i = 0; i < len/2; i++) {
+        printf("Appending %d\n", arr_data[i]);
+        ll_append(list, arr_data+i);
+        ll_print(list, f_print, f_clean);
+    }
+    for (int i = len/2; i < len; i++) {
+        printf("Prepending %d\n", arr_data[i]);
+        ll_prepend(list, arr_data+i);
+        ll_print(list, f_print, f_clean);
+    }
+    ll_destroy(list);
+}
+
+void t_delete_all() {
+    printf("*************** TEST (DELETE-ALL) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        ll_insert(list, arr_data+i, i);
+    }
+    ll_print(list, f_print, f_clean);
+    printf("Deleting all...\n");
+    ll_delete_all(list);
+    for (int i = 0; i < 3; i++) {
+        printf("Inserting: %d at (i=%d)\n", arr_data[i], i);
+        ll_insert(list, arr_data+i, i);
+        ll_print(list, f_print, f_clean);
+    }
+    ll_destroy(list);
+}
+
+void t_copy() {
+    printf("*************** TEST (COPY) ***************\n");
+    ll_list *list = ll_create();
+    int arr_data[] = {1, 2, 3, 4, 5};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        ll_insert(list, arr_data+i, i);
+    }
+    ll_print(list, f_print, f_clean);
     printf("Copying...\n");
     ll_list *copy = ll_copy(list, 0);
     ll_print(copy, f_print, f_clean);
-    ll_destroy(copy);
-    putchar('\n');
-
-    printf("Reverse copying...\n");
-    copy = ll_copy(list, 1);
-    ll_print(copy, f_print, f_clean);
-    putchar('\n');
-
-    printf("Original...\n");
+    printf("Reversing...\n");
+    ll_list *rev = ll_copy(list, 1);
+    ll_print(rev, f_print, f_clean);
+    printf("Original:\n");
     ll_print(list, f_print, f_clean);
-    putchar('\n');
+    ll_destroy(list);
+    ll_destroy(copy);
+    ll_destroy(rev);
+}
+
+void print(void *data) {
+    printf("%d\n", *((int *) data));
 }
 
 void f_clean(ll_list *list) {
     printf("\b\b \n");
 }
 
-void f_print(int data) {
-    printf("%d, ", data);
+void f_print(void *data) {
+    printf("%d, ", *((int *) data));
 }
 
 #endif

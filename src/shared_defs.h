@@ -2,7 +2,6 @@
 /**
  *  @brief      : The data-type of choice stored in the structures.
  *                  (Note: Should be 'void *' for generality, and for many functions, that depend on other structures.)
- *                  (Note: For developers, some unit-tests assume 'int' for DATA_TYPE.)
 **/
 #define DATA_TYPE void *
 
@@ -17,4 +16,4 @@
  *  @brief      : The data-type of choice for the length of a data structure to be stored in.
  *                  (Note: It defines the maximum length of a data structure.)
 **/
-#define LENGTH_DT signed long
+#define LENGTH_DT signed long int

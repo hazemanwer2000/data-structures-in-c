@@ -53,7 +53,7 @@ typedef struct LL_LIST {
 
 /* ********************* #include SECTION (2) ********************** */
 
-#include "avl_tree.h"
+#include "avl_tree.h"                                   /* This section is for #include's that must follow the struct definitions */
 
 /* ********************* function declaration(S) SECTION ********************** */
 
