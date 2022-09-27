@@ -32,8 +32,10 @@ static avl_node * avl_create_node(DATA_TYPE data);
 static avl_node * avl_get_node(avl_tree *tree, LENGTH_DT i);
 static void avl_deallocate_all(avl_tree *tree);
 
-static avl_node * left_balance(avl_node *node);
-static avl_node * right_balance(avl_node *node);
+static avl_node * left_balance_insert(avl_node *node);
+static avl_node * left_balance_delete(avl_node *node, unsigned char *signal);
+static avl_node * right_balance_insert(avl_node *node);
+static avl_node * right_balance_delete(avl_node *node, unsigned char *signal);
 static avl_node * rotate_left(avl_node *node);
 static avl_node * rotate_right(avl_node *node);
 
@@ -73,6 +75,8 @@ static avl_node * avl_create_node(DATA_TYPE data) {
  *  @return     : Data stored.
 **/
 DATA_TYPE avl_get(avl_tree *tree, LENGTH_DT i) {
+    if (i < 0) { i += tree->length; }                    /* to allow reverse indexing */
+
     avl_node *node = avl_get_node(tree, i);
     if (node != NULL) {
         return node->data;
@@ -181,7 +185,7 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
                 } else if (prev_node->balance == BAL) {
                     prev_node->balance = LHIGH;
                 } else {
-                    prev_node = left_balance(prev_node);          /* 2x LHIGH */
+                    prev_node = left_balance_insert(prev_node);          /* 2x LHIGH */
                     signal = 0;
                 }
             }
@@ -194,7 +198,7 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
                 } else if (prev_node->balance == BAL) {
                     prev_node->balance = RHIGH;
                 } else {
-                    prev_node = right_balance(prev_node);          /* 2x RHIGH */
+                    prev_node = right_balance_insert(prev_node);          /* 2x RHIGH */
                     signal = 0;
                 }
             }
@@ -218,9 +222,10 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
  *  @return     : None.
 **/
-void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+DATA_TYPE avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
     avl_node *node_to_del = avl_get_node(tree, i);
     if (node_to_del != NULL) {
+        DATA_TYPE return_data = node_to_del->data;
         avl_node **parent_ptr = &tree->root;
         while (1) {
             if (*parent_ptr == node_to_del) {
@@ -233,7 +238,7 @@ void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compar
                     *parent_ptr = tmp->rchild;
                     free(tmp);
                     break;
-                } else if ((*parent_ptr)->lchild == NULL) {                                 /* Case: Left child. */
+                } else if ((*parent_ptr)->rchild == NULL) {                                 /* Case: Left child. */
                     avl_node *tmp = *parent_ptr;
                     *parent_ptr = tmp->lchild;
                     free(tmp);
@@ -256,7 +261,9 @@ void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compar
             }
         }
         tree->length--;
+        return return_data;
     }
+    return NULL;
 }
 
 /**
@@ -269,11 +276,14 @@ void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compar
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
  *  @return     : None.
 **/
-void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
+DATA_TYPE avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data)) {
     avl_node *node_to_del = avl_get_node(tree, i);
     if (node_to_del != NULL) {
+        DATA_TYPE return_data = node_to_del->data;
         ll_list *stack = ll_create();
         avl_node **parent_ptr = &tree->root;
+        unsigned char signal;
+
         while (1) {
             if (*parent_ptr == node_to_del) {
                 if ((*parent_ptr)->lchild == NULL && (*parent_ptr)->rchild == NULL) {       /* Case: No children. */
@@ -285,7 +295,7 @@ void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYP
                     *parent_ptr = tmp->rchild;
                     free(tmp);
                     break;
-                } else if ((*parent_ptr)->lchild == NULL) {                                 /* Case: Left child. */
+                } else if ((*parent_ptr)->rchild == NULL) {                                 /* Case: Left child. */
                     avl_node *tmp = *parent_ptr;
                     *parent_ptr = tmp->lchild;
                     free(tmp);
@@ -322,7 +332,11 @@ void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYP
                 } else if ((*parent_ptr)->balance == LHIGH) {
                     (*parent_ptr)->balance = BAL;
                 } else {                                                /* 2x RHIGH */
-                    *parent_ptr = right_balance(*parent_ptr);
+                    signal = 0;
+                    *parent_ptr = right_balance_delete(*parent_ptr, &signal);
+                    if (signal) {
+                        break;
+                    }
                 }
             } else {
                 if ((*parent_ptr)->balance == BAL) {
@@ -330,22 +344,116 @@ void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYP
                     break;
                 } else if ((*parent_ptr)->balance == RHIGH) {
                     (*parent_ptr)->balance = BAL;
-                } else {                                                /* 2x RHIGH */
-                    *parent_ptr = right_balance(*parent_ptr);
+                } else {                                                /* 2x LHIGH */
+                    signal = 0;
+                    *parent_ptr = left_balance_delete(*parent_ptr, &signal);
+                    if (signal) {
+                        break;
+                    }
                 }
             }
         }
         tree->length--;
         ll_destroy(stack);
+        return return_data;
     }
+    return NULL;
 }
 
 /**
- *  @brief      : Left balance a 2x LHIGH node in an AVL tree.
+ *  @brief      : Balance a 2x LHIGH node in an AVL tree (for deletion).
  *  @param      : [ Node to rebalance. ]
  *  @return     : [ Node after rebalancing (may not be the same node). ]
 **/
-static avl_node * left_balance(avl_node *node) {
+static avl_node * left_balance_delete(avl_node *node, unsigned char *signal) {
+    avl_node *lsub, *lrsub;
+    lsub = node->lchild;
+    switch (lsub->balance) {
+        case LHIGH:                                                 /* single rotation */
+            node->balance = BAL;
+            lsub->balance = BAL;
+            node = rotate_right(node);
+            break;
+        case BAL:                                                   /* single rotation */
+            node->balance = LHIGH;
+            lsub->balance = RHIGH;
+            node = rotate_right(node);
+            *signal = 1;               /* height unchanged */
+            break;
+        case RHIGH:                                                 /* double rotation */
+            lrsub = lsub->rchild;
+            switch(lrsub->balance) {
+                case LHIGH:
+                    node->balance = RHIGH;
+                    lsub->balance = BAL;
+                    break;
+                case BAL:
+                    node->balance = BAL;
+                    lsub->balance = BAL;
+                    break;
+                case RHIGH:
+                    node->balance = BAL;
+                    lsub->balance = LHIGH;
+                    break;
+            }
+            lrsub->balance = BAL;
+            node->lchild = rotate_left(lsub);
+            node = rotate_right(node);
+            break;
+    }
+    return node;
+}
+
+/**
+ *  @brief      : Balance a 2x RHIGH node in an AVL tree (for deletion).
+ *  @param      : [ Node to rebalance. ]
+ *  @return     : [ Node after rebalancing (may not be the same node). ]
+**/
+static avl_node * right_balance_delete(avl_node *node, unsigned char *signal) {
+    avl_node *rsub, *rlsub;
+    rsub = node->rchild;
+    switch (rsub->balance) {
+        case RHIGH:                                                 /* single rotation */
+            node->balance = BAL;
+            rsub->balance = BAL;
+            node = rotate_left(node);
+            break;
+        case BAL:                                                   /* single rotation */
+            node->balance = RHIGH;
+            rsub->balance = LHIGH;
+            node = rotate_left(node);
+            *signal = 1;                /* height unchanged */
+            break;
+        case LHIGH:                                                 /* double rotation */
+            rlsub = rsub->lchild;
+            switch(rlsub->balance) {
+                case RHIGH:
+                    node->balance = LHIGH;
+                    rsub->balance = BAL;
+                    break;
+                case BAL:
+                    node->balance = BAL;
+                    rsub->balance = BAL;
+                    break;
+                case LHIGH:
+                    node->balance = BAL;
+                    rsub->balance = RHIGH;
+                    break;
+            }
+            rlsub->balance = BAL;
+            node->rchild = rotate_right(rsub);
+            node = rotate_left(node);
+            break;
+    }
+    return node;
+}
+
+/**
+ *  @brief      : Balance a 2x LHIGH node in an AVL tree (for insertion).
+ *  @param      : [ Node to rebalance. ]
+ *  @return     : [ Node after rebalancing (may not be the same node). ]
+**/
+static avl_node * left_balance_insert(avl_node *node) {
     avl_node *lsub, *lrsub;
     lsub = node->lchild;
     switch (lsub->balance) {
@@ -379,11 +487,11 @@ static avl_node * left_balance(avl_node *node) {
 }
 
 /**
- *  @brief      : Left balance a 2x RHIGH node in an AVL tree.
+ *  @brief      : Balance a 2x RHIGH node in an AVL tree (for insertion).
  *  @param      : [ Node to rebalance. ]
  *  @return     : [ Node after rebalancing (may not be the same node). ]
 **/
-static avl_node * right_balance(avl_node *node) {
+static avl_node * right_balance_insert(avl_node *node) {
     avl_node *rsub, *rlsub;
     rsub = node->rchild;
     switch (rsub->balance) {
@@ -561,7 +669,8 @@ void avl_print(avl_tree *tree, void (*f_print)(DATA_TYPE data), unsigned char un
             node = ll_dequeue(queue);
             if (node != NULL) {
                 putchar_n(' ', factor*unit_size);
-                f_print(node->data);
+             /* printf("[%2d]", node->balance); */
+                f_print(node->data);                       
                 putchar_n(' ', (factor+1)*unit_size);
                 ll_enqueue(queue, node->lchild);
                 ll_enqueue(queue, node->rchild);
@@ -595,14 +704,87 @@ static void putchar_n(char c, unsigned int n) {
 
 unsigned char f_compare(void *new_data, void *old_data);
 void f_print(void *data);
+void f_print_ll(void *data);
+void f_clean_ll(ll_list *list);
 
 void t_insert_unbalanced();
 void t_insert();
+void t_delete_unbalanced();
+void t_delete();
+void t_get();
+void t_make_list();
 
 int main() {
     t_insert_unbalanced();
-    /* t_insert(); */
+    t_insert();
+    t_delete_unbalanced();
+    t_delete();
+    t_get();
+    t_make_list();
     return 0;
+}
+
+void t_make_list() {
+    printf("*************** TEST (MAKE-LIST) ***************\n");
+    avl_tree *tree = avl_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        avl_insert(tree, arr_data+i, f_compare);
+    }
+    avl_print(tree, f_print, 4);
+    putchar('\n');
+    ll_print(avl_make_list(tree), f_print_ll, f_clean_ll);
+    avl_destroy(tree);
+}
+
+void t_get() {
+    printf("*************** TEST (GET) ***************\n");
+    avl_tree *tree = avl_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        avl_insert(tree, arr_data+i, f_compare);
+    }
+    avl_print(tree, f_print, 4);
+    int arr_index[] = {5, 8, 1, -1, 3, 14, 0, 1};
+    for (int i = 0; i < LEN(arr_index); i++) {
+        printf("Getting (i=%d)\n", arr_index[i]);
+        printf("%d\n", *((int *) avl_get(tree, arr_index[i])));
+    }
+    avl_destroy(tree);
+}
+
+void t_delete() {
+    printf("*************** TEST (DELETE) ***************\n");
+    avl_tree *tree = avl_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        avl_insert(tree, arr_data+i, f_compare);
+    }
+    avl_print(tree, f_print, 4);
+    int arr_index[] = {7, 7, 6, 5, 0, 8, 1, 3, 4, 4, 4, 1, 0, 0, 0};
+    for (int i = 0; i < LEN(arr_index); i++) {
+        printf("Deleting (i=%d)\n", arr_index[i]);
+        printf("%d\n", *((int *) avl_delete(tree, arr_index[i], f_compare)));
+        avl_print(tree, f_print, 4);
+    }
+    avl_destroy(tree);
+}
+
+void t_delete_unbalanced() {
+    printf("*************** TEST (DELETE-UNBALANCED) ***************\n");
+    avl_tree *tree = avl_create();
+    int arr_data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (int i = 0; i < LEN(arr_data); i++) {
+        avl_insert(tree, arr_data+i, f_compare);
+    }
+    avl_print(tree, f_print, 4);
+    int arr_index[] = {7, 7, 6, 5, 0, 8, 1, 3, 4, 4, 4, 1, 0, 0, 0};
+    for (int i = 0; i < LEN(arr_index); i++) {
+        printf("Deleting (i=%d)\n", arr_index[i]);
+        printf("%d\n", *((int *) avl_delete_unbalanced(tree, arr_index[i], f_compare)));
+        avl_print(tree, f_print, 4);
+    }
+    avl_destroy(tree);
 }
 
 void t_insert_unbalanced() {
@@ -611,7 +793,7 @@ void t_insert_unbalanced() {
     int arr_data1[] = {3, 2, 5, 6, 8, 1, 9};
     for (int i = 0; i < LEN(arr_data1); i++) {
         printf("Inserting: %d\n", arr_data1[i]);
-        avl_insert(tree, arr_data1+i, f_compare);
+        avl_insert_unbalanced(tree, arr_data1+i, f_compare);
         avl_print(tree, f_print, 4);
     }
     avl_destroy(tree);
@@ -675,6 +857,14 @@ unsigned char f_compare(void *new_data, void *old_data) {
 
 void f_print(void *data) {
     printf("[%2d]", *((int *) data));
+}
+
+void f_clean_ll(ll_list *list) {
+    printf("\b\b \n");
+}
+
+void f_print_ll(void *data) {
+    printf("%d, ", *((int *) data));
 }
 
 #endif

@@ -82,7 +82,7 @@ void avl_insert(avl_tree *tree, DATA_TYPE data, unsigned char (*f_compare)(DATA_
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
  *  @return     : None.
 **/
-void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+DATA_TYPE avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 /**
  *  @brief      : Index to delete item from. If index out of bounds, nothing happens. Balances (AVL Tree Deletion).
@@ -91,7 +91,7 @@ void avl_delete_unbalanced(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compar
  *                [ Function that receives the new data and the data of the current traverse node, and returns 0 (right) or 1 (left). ]
  *  @return     : None.
 **/
-void avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
+DATA_TYPE avl_delete(avl_tree *tree, LENGTH_DT i, unsigned char (*f_compare)(DATA_TYPE new_data, DATA_TYPE old_data));
 
 /**
  *  @brief      : Get the height of a tree.
