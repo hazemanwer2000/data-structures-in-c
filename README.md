@@ -1,10 +1,15 @@
 # Data Structures in C
 Optimized, well-documented, dynamic **Data Structures**, ready for use, C99+ compatible.
 
-- Linked List (*supports stack and queue operations*).
-- AVL Binary Search Tree (*supports unbalanced BST operations*).
+- **List**
+  - Implemented using a *Linked List*.
+  - Supports *Stack* and *Queue* operations.
 
-#### Notes:
+- **Sorted List**
+  - Implemented using an *AVL Binary Search Tree*.
+  - Supports unbalanced *BST* operations.
+
+***Notes:***
 
 - All procedures are optimized to run *iteratively*, and not recursively.
 - The data type of choice is `void *`, for maximum generality.
