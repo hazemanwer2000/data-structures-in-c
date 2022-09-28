@@ -15,5 +15,6 @@
 /**
  *  @brief      : The data-type of choice for the length of a data structure to be stored in.
  *                  (Note: It defines the maximum length of a data structure.)
+ *                  (Note: When negative, it permits negative or reverse indexing.)
 **/
 #define LENGTH_DT signed long int
