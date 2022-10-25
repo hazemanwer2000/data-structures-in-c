@@ -14,6 +14,7 @@ Optimized, well-documented, dynamic **Data Structures**, ready for use, C99+ com
 - All procedures are optimized to run *iteratively*, and not recursively.
 - The data type of choice is `void *`, for maximum generality.
 - Structures and function pointers are utilized where possible, to increase code modularity.
+- No `NULL` checks are made on returned pointers from `malloc` calls, for maximum speed.
 
 <br>
 
